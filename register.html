@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#e91e63">
+  <title>Create your Luvora account</title>
+  <link rel="stylesheet" href="/assets/auth.css">
+</head>
+<body>
+
+  <a class="brand" href="/">Luvora ❤️</a>
+
+  <main class="card">
+
+    <div id="formPanel">
+      <h1>Create your Luvora account</h1>
+      <p class="subtitle">Join Luvora to meet new friends and connect with people around the world.</p>
+
+      <form id="registerForm" class="grid" novalidate>
+
+        <div class="field span-2" data-field="fullName">
+          <label for="fullName">Full name</label>
+          <input id="fullName" name="fullName" type="text" autocomplete="name"
+                 placeholder="Amara Okafor" maxlength="80" required>
+          <p class="error" id="fullName-error" aria-live="polite"></p>
+        </div>
+
+        <div class="field" data-field="username">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username"
+                 placeholder="amara_o" maxlength="20" required
+                 autocapitalize="none" spellcheck="false">
+          <p class="hint">3–20 letters, numbers or underscores.</p>
+          <p class="error" id="username-error" aria-live="polite"></p>
+        </div>
+
+        <div class="field" data-field="email">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email"
+                 inputmode="email" placeholder="you@example.com" required
+                 autocapitalize="none" spellcheck="false">
+          <p class="error" id="email-error" aria-live="polite"></p>
+        </div>
+
+        <div class="field span-2" data-field="password">
+          <label for="password">Password</label>
+          <div class="password-wrap">
+            <input id="password" name="password" type="password" autocomplete="new-password"
+                   placeholder="At least 8 characters" minlength="8" required>
+            <button type="button" class="toggle-password" id="togglePassword" aria-pressed="false">Show</button>
+          </div>
+          <p class="error" id="password-error" aria-live="polite"></p>
+        </div>
+
+        <div class="field" data-field="dateOfBirth">
+          <label for="dateOfBirth">Date of birth</label>
+          <input id="dateOfBirth" name="dateOfBirth" type="date" autocomplete="bday" required>
+          <p class="error" id="dateOfBirth-error" aria-live="polite"></p>
+        </div>
+
+        <div class="field" data-field="country">
+          <label for="country">Country</label>
+          <select id="country" name="country" autocomplete="country-name" required>
+            <option value="">Select your country</option>
+          </select>
+          <p class="error" id="country-error" aria-live="polite"></p>
+        </div>
+
+        <fieldset class="field span-2" data-field="gender" style="border:none">
+          <legend class="group-label">Gender</legend>
+          <div class="pills" role="radiogroup" aria-describedby="gender-error">
+            <label class="pill"><input type="radio" name="gender" value="woman"><span>Woman</span></label>
+            <label class="pill"><input type="radio" name="gender" value="man"><span>Man</span></label>
+            <label class="pill"><input type="radio" name="gender" value="non-binary"><span>Non-binary</span></label>
+            <label class="pill"><input type="radio" name="gender" value="other"><span>Other</span></label>
+            <label class="pill"><input type="radio" name="gender" value="prefer-not-to-say"><span>Prefer not to say</span></label>
+          </div>
+          <p class="error" id="gender-error" aria-live="polite"></p>
+        </fieldset>
+
+        <div class="field span-2" data-field="over18">
+          <label class="check" for="over18">
+            <input id="over18" name="over18" type="checkbox" required>
+            <span>I confirm that I am 18 years of age or older.</span>
+          </label>
+          <p class="error" id="over18-error" aria-live="polite"></p>
+        </div>
+
+        <p class="form-message span-2" id="formMessage" role="alert"></p>
+
+        <button type="submit" class="primary span-2" id="submitButton">Create Account</button>
+      </form>
+
+      <p class="alt">Already have an account? <a href="/login.html">Log in</a></p>
+    </div>
+
+    <div class="success" id="successPanel" hidden>
+      <div class="icon">🎉</div>
+      <h2 id="successTitle">Welcome to Luvora!</h2>
+      <p>Your account is ready. You can log in now and start meeting people from around the world.</p>
+      <a class="primary" href="/login.html" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Go to log in</a>
+    </div>
+  </main>
+
+  <a class="back" href="/">← Back to Home</a>
+
+  <script src="/assets/countries.js"></script>
+  <script src="/assets/register.js"></script>
+</body>
+</html>
