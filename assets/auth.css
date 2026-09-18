@@ -1,0 +1,343 @@
+/* Shared styles for the Luvora sign-up and log-in pages.
+   Colour and type choices mirror the homepage (Index.html). */
+
+:root {
+  --pink: #e91e63;
+  --pink-dark: #c2185b;
+  --pink-soft: #fce4ec;
+  --blush: #fff7fb;
+  --ink: #222;
+  --muted: #777;
+  --line: #f0dae4;
+  --danger: #c62828;
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: var(--blush);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 48px;
+  -webkit-text-size-adjust: 100%;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--pink);
+  text-decoration: none;
+  margin-bottom: 18px;
+}
+
+.card {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: 24px;
+  padding: 28px 26px 30px;
+  box-shadow: 0 6px 28px rgba(233, 30, 99, 0.10);
+}
+
+.card h1 {
+  font-size: 26px;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+
+/* ---------- form layout ---------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field label,
+.group-label {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+select {
+  width: 100%;
+  min-height: 50px;
+  padding: 13px 14px;
+  font-size: 16px; /* 16px keeps mobile browsers from zooming on focus */
+  color: var(--ink);
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  appearance: none;
+}
+
+select {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%23e91e63' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+input:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--pink);
+  box-shadow: 0 0 0 3px var(--pink-soft);
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.error {
+  font-size: 13px;
+  color: var(--danger);
+}
+
+.error:empty {
+  display: none;
+}
+
+.field.invalid input,
+.field.invalid select {
+  border-color: var(--danger);
+}
+
+/* ---------- password field ---------- */
+
+.password-wrap {
+  position: relative;
+}
+
+.password-wrap input {
+  padding-right: 68px;
+}
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--pink);
+  background: none;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* ---------- gender pills ---------- */
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.pill span {
+  display: block;
+  min-height: 44px;
+  padding: 12px 16px;
+  font-size: 15px;
+  color: var(--pink);
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.pill input:checked + span {
+  color: #fff;
+  background: var(--pink);
+  border-color: var(--pink);
+}
+
+.pill input:focus-visible + span {
+  box-shadow: 0 0 0 3px var(--pink-soft);
+}
+
+/* ---------- checkbox ---------- */
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  background: var(--blush);
+  border-radius: var(--radius);
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.check input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  accent-color: var(--pink);
+}
+
+/* ---------- buttons and links ---------- */
+
+.primary {
+  width: 100%;
+  min-height: 54px;
+  margin-top: 4px;
+  font-size: 17px;
+  font-weight: bold;
+  color: #fff;
+  background: var(--pink);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+}
+
+.primary:hover {
+  background: var(--pink-dark);
+}
+
+.primary[disabled] {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+.form-message {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.form-message:empty {
+  display: none;
+}
+
+.form-message.bad {
+  color: var(--danger);
+  background: #fdecea;
+}
+
+.alt {
+  margin-top: 22px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.alt a {
+  color: var(--pink);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.alt a:hover {
+  text-decoration: underline;
+}
+
+.back {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px;
+  font-size: 15px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--pink);
+}
+
+/* ---------- success panel ---------- */
+
+.success {
+  text-align: center;
+}
+
+.success .icon {
+  font-size: 52px;
+}
+
+.success h2 {
+  margin: 12px 0 8px;
+  font-size: 22px;
+}
+
+.success p {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.success .primary {
+  margin-top: 22px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- wider screens ---------- */
+
+@media (min-width: 560px) {
+  body {
+    padding: 40px 20px 60px;
+  }
+
+  .card {
+    padding: 34px 34px 36px;
+  }
+
+  .card h1 {
+    font-size: 30px;
+  }
+
+  .span-2 {
+    grid-column: span 2;
+  }
+
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
