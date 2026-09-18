@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - Luvora ❤️</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fff5f8;
+      color: #222;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 20px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.08);
+    }
+
+    .logo {
+      text-align: center;
+      color: #e91e63;
+      font-size: 30px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    .intro {
+      text-align: center;
+      color: #777;
+      margin-bottom: 25px;
+    }
+
+    .photo {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: #ffe0eb;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-size: 45px;
+    }
+
+    .photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 7px;
+      font-weight: bold;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 16px;
+      font-family: inherit;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 25px;
+      border: none;
+      border-radius: 10px;
+      background: #e91e63;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+    }
+
+    button:disabled {
+      opacity: .6;
+    }
+
+    #message {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .logout {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #e91e63;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="logo">Luvora ❤️</div>
+
+  <h1>My Profile</h1>
+
+  <p class="intro">
+    Tell people a little about yourself.
+  </p>
+
+  <div class="photo" id="photoPreview">
+    👤
+  </div>
+
+  <form id="profileForm">
+
+    <label for="displayName">Display name</label>
+    <input
+      type="text"
+      id="displayName"
+      placeholder="How should people see your name?"
+      required
+    >
+
+    <label for="username">Username</label>
+    <input
+      type="text"
+      id="username"
+      placeholder="e.g. victor123"
+    >
+
+    <label for="country">Country</label>
+    <input
+      type="text"
+      id="country"
+      placeholder="e.g. Nigeria"
+      required
+    >
+
+    <label for="age">Age</label>
+    <input
+      type="number"
+      id="age"
+      min="18"
+      max="100"
+      placeholder="18+"
+      required
+    >
+
+    <label for="gender">Gender</label>
+    <select id="gender" required>
+      <option value="">Select gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label for="bio">About me</label>
+    <textarea
+      id="bio"
+      placeholder="Tell people something interesting about you..."
+    ></textarea>
+
+    <label for="lookingFor">I'm looking for</label>
+    <select id="lookingFor" required>
+      <option value="">Select one</option>
+      <option value="Friendship">Friendship</option>
+      <option value="Relationship">Relationship</option>
+      <option value="Marriage">Marriage</option>
+      <option value="Friends and Relationship">Friends and Relationship</option>
+    </select>
+
+    <label for="avatarUrl">Profile photo URL</label>
+    <input
+      type="url"
+      id="avatarUrl"
+      placeholder="Paste a photo URL"
+    >
+
+    <button type="submit" id="saveButton">
+      Save My Profile ❤️
+    </button>
+
+  </form>
+
+  <div id="message"></div>
+
+  <a class="logout" href="Index.html">
+    ← Back to Luvora
+  </a>
+
+</div>
+
+<script>
+  const SUPABASE_URL =
+    "https://krfitqabsearnidegdzx.supabase.co";
+
+  const SUPABASE_KEY =
+    "sb_publishable_ZmozR_WotOGpWRGoVXjUfA_X-iLMfMy";
+
+  const supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+  const form = document.getElementById("profileForm");
+  const message = document.getElementById("message");
+  const saveButton = document.getElementById("saveButton");
+  const avatarUrl = document.getElementById("avatarUrl");
+  const photoPreview = document.getElementById("photoPreview");
+
+  async function loadProfile() {
+
+    const {
+      data: { user },
+      error: userError
+    } = await supabaseClient.auth.getUser();
+
+    if (userError || !user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const { data: profile } =
+      await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
+
+    if (profile) {
+
+      document.getElementById("displayName").value =
+        profile.display_name || "";
+
+      document.getElementById("username").value =
+        profile.username || "";
+
+      document.getElementById("country").value =
+        profile.country || "";
+
+      document.getElementById("age").value =
+        profile.age || "";
+
+      document.getElementById("gender").value =
+        profile.gender || "";
+
+      document.getElementById("bio").value =
+        profile.bio || "";
+
+      document.getElementById("lookingFor").value =
+        profile.looking_for || "";
+
+      document.getElementById("avatarUrl").value =
+        profile.avatar_url || "";
+
+      showPhoto(profile.avatar_url);
+    }
+  }
+
+  function showPhoto(url) {
+
+    if (!url) {
+      photoPreview.innerHTML = "👤";
+      return;
+    }
+
+    photoPreview.innerHTML =
+      `<img src="${url}" alt="Profile photo"
+       onerror="this.parentElement.innerHTML='👤'">`;
+  }
+
+  avatarUrl.addEventListener("input", function() {
+    showPhoto(this.value.trim());
+  });
+
+  form.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+
+    const {
+      data: { user },
+      error: userError
+    } = await supabaseClient.auth.getUser();
+
+    if (userError || !user) {
+      message.textContent = "Please log in first.";
+      saveButton.disabled = false;
+      saveButton.textContent = "Save My Profile ❤️";
+      return;
+    }
+
+    const profileData = {
+      id: user.id,
+      username:
+        document.getElementById("username").value.trim(),
+
+      display_name:
+        document.getElementById("displayName").value.trim(),
+
+      country:
+        document.getElementById("country").value.trim(),
+
+      age:
+        parseInt(document.getElementById("age").value),
+
+      gender:
+        document.getElementById("gender").value,
+
+      bio:
+        document.getElementById("bio").value.trim(),
+
+      looking_for:
+        document.getElementById("lookingFor").value,
+
+      avatar_url:
+        document.getElementById("avatarUrl").value.trim(),
+
+      updated_at:
+        new Date().toISOString()
+    };
+
+    const { error } =
+      await supabaseClient
+        .from("profiles")
+        .upsert(profileData, { onConflict: "id" });
+
+    if (error) {
+
+      message.textContent =
+        "Could not save profile: " + error.message;
+
+      saveButton.disabled = false;
+      saveButton.textContent = "Save My Profile ❤️";
+      return;
+    }
+
+    message.textContent =
+      "Profile saved successfully! ❤️";
+
+    saveButton.textContent = "Saved ✓";
+
+    setTimeout(() => {
+      window.location.href = "Index.html";
+    }, 1500);
+  });
+
+  loadProfile();
+</script>
+
+</body>
+</html>
