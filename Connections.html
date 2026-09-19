@@ -201,16 +201,21 @@
       const profile = profileMap[request.sender_id] || {};
 
       return `
-        <div class="card">
-          <div class="name">
-            ${profile.display_name || profile.username || "Luvora User"}
-          </div>
+      <div class="card">
+  <div class="name">
+    ${profile.display_name || profile.username || "Luvora User"}
+  </div>
 
-          <div class="info">
-            ${profile.age ? profile.age + " years old" : ""}
-            ${profile.country ? " • " + profile.country : ""}
-          </div>
+  <div class="info">
+    ${profile.age ? profile.age + " years old" : ""}
+    ${profile.country ? " • " + profile.country : ""}
+  </div>
 
+  <button class="accept"
+    onclick="openChat('${otherId}')">
+    💬 Chat
+  </button>
+</div>
           <button class="accept"
             onclick="respondToRequest('${request.id}', 'accepted')">
             ❤️ Accept
