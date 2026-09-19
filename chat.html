@@ -8,29 +8,31 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #fff5f8;
+      background: #f8f8f8;
     }
 
     header {
-      background: white;
+      background: #ff4f81;
+      color: white;
       padding: 16px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.08);
-    }
-
-    .back {
-      color: #e91e63;
-      text-decoration: none;
+      text-align: center;
+      font-size: 22px;
       font-weight: bold;
     }
 
-    .title {
-      font-size: 20px;
+    .back {
+      display: block;
+      text-decoration: none;
+      color: #ff4f81;
+      padding: 15px;
+      background: white;
       font-weight: bold;
     }
 
@@ -38,11 +40,12 @@
       height: calc(100vh - 145px);
       overflow-y: auto;
       padding: 15px;
+      padding-bottom: 80px;
     }
 
     .message {
       max-width: 75%;
-      padding: 11px 14px;
+      padding: 10px 14px;
       margin: 8px 0;
       border-radius: 18px;
       word-wrap: break-word;
@@ -50,48 +53,50 @@
 
     .mine {
       margin-left: auto;
-      background: #e91e63;
+      background: #ff4f81;
       color: white;
+      border-bottom-right-radius: 4px;
     }
 
     .theirs {
       margin-right: auto;
       background: white;
-      color: #333;
+      color: #222;
+      border-bottom-left-radius: 4px;
     }
 
     .time {
       font-size: 10px;
-      opacity: .7;
+      opacity: 0.7;
       margin-top: 4px;
     }
 
-    .composer {
+    .input-area {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      background: white;
-      padding: 10px;
       display: flex;
       gap: 8px;
-      box-shadow: 0 -2px 8px rgba(0,0,0,.08);
+      padding: 10px;
+      background: white;
+      border-top: 1px solid #ddd;
     }
 
     #messageInput {
       flex: 1;
       padding: 12px;
       border: 1px solid #ddd;
-      border-radius: 22px;
+      border-radius: 25px;
       outline: none;
     }
 
     #sendButton {
       border: none;
-      background: #e91e63;
+      background: #ff4f81;
       color: white;
-      padding: 0 20px;
-      border-radius: 22px;
+      padding: 0 18px;
+      border-radius: 25px;
       font-weight: bold;
     }
   </style>
@@ -99,133 +104,256 @@
 
 <body>
 
-<header>
-  <a class="back" href="connections.html">← Back</a>
-  <div class="title">Luvora 💬</div>
-</header>
+  <header>
+    💕 Luvora Chat
+  </header>
 
-<div id="messages">
-  <p>Loading messages...</p>
-</div>
+  <a class="back" href="connections.html">
+    ← Back to Connections
+  </a>
 
-<div class="composer">
-  <input id="messageInput" type="text" placeholder="Write a message...">
-  <button id="sendButton">Send</button>
-</div>
+  <div id="messages">
+    <p>Loading chat...</p>
+  </div>
 
-<script>
-const SUPABASE_URL = "https://krfitqabsearnidegdzx.supabase.co";
+  <div class="input-area">
+    <input
+      id="messageInput"
+      type="text"
+      placeholder="Write a message..."
+      autocomplete="off"
+    >
 
-const SUPABASE_KEY = "sb_publishable_ZmozR_WotOGpWRGovxjUfA_x-iLMFmy";
+    <button id="sendButton">
+      Send
+    </button>
+  </div>
 
-const supabaseClient =
-  window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  <script>
+    const SUPABASE_URL = "https://krfitqabsearnidegdzx.supabase.co";
 
-let currentUser = null;
-let conversationId = null;
+    const SUPABASE_KEY = "sb_publishable_ZmorR_WotOGpWRGovxjUfA_x-iLMfmy";
 
-async function startChat() {
+    const supabaseClient =
+      window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const {
-    data: { user },
-    error
-  } = await supabaseClient.auth.getUser();
+    let currentUser = null;
+    let conversationId = null;
+    let chatChannel = null;
 
-  if (error || !user) {
-    window.location.href = "login.html";
-    return;
-  }
+    const messagesBox = document.getElementById("messages");
+    const messageInput = document.getElementById("messageInput");
+    const sendButton = document.getElementById("sendButton");
 
-  currentUser = user;
 
-  /*
-    For now this page is the chat foundation.
-    We will connect it to a specific accepted connection
-    in the next step.
-  */
+    async function startChat() {
 
-  document.getElementById("messages").innerHTML =
-    "<p style='text-align:center;color:#777;'>Select an accepted connection to start chatting. ❤️</p>";
-}
+      const {
+        data: { user },
+        error
+      } = await supabaseClient.auth.getUser();
 
-document.getElementById("sendButton").addEventListener("click", sendMessage);
+      if (error || !user) {
+        alert("Please log in first.");
+        window.location.href = "login.html";
+        return;
+      }
 
-document.getElementById("messageInput").addEventListener("keydown", function(event) {
-  if (event.key === "Enter") {
-    sendMessage();
-  }
-});
+      currentUser = user;
 
-async function sendMessage() {
+      const params = new URLSearchParams(window.location.search);
 
-  const input = document.getElementById("messageInput");
-  const message = input.value.trim();
+      conversationId = params.get("conversation");
 
-  if (!message) return;
+      if (!conversationId) {
+        messagesBox.innerHTML =
+          "<p>No conversation was selected.</p>";
+        return;
+      }
 
-  if (!conversationId) {
-    alert("Your chat connection will be activated in the next step. ❤️");
-    return;
-  }
+      await verifyMembership();
 
-  const { error } = await supabaseClient
-    .from("messages")
-    .insert({
-      conversation_id: conversationId,
-      sender_id: currentUser.id,
-      message: message
-    });
+      await loadMessages();
 
-  if (error) {
-    console.error(error);
-    alert("Message could not be sent.");
-    return;
-  }
+      subscribeToMessages();
+    }
 
-  input.value = "";
-  loadMessages();
-}
 
-async function loadMessages() {
+    async function verifyMembership() {
 
-  if (!conversationId) return;
+      const { data, error } = await supabaseClient
+        .from("conversation_members")
+        .select("conversation_id")
+        .eq("conversation_id", conversationId)
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
 
-  const { data, error } = await supabaseClient
-    .from("messages")
-    .select("*")
-    .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: true });
+      if (error || !data) {
+        console.error(error);
+        messagesBox.innerHTML =
+          "<p>You don't have access to this conversation.</p>";
+        return;
+      }
+    }
 
-  if (error) {
-    console.error(error);
-    return;
-  }
 
-  const box = document.getElementById("messages");
+    async function loadMessages() {
 
-  box.innerHTML = data.map(msg => `
-    <div class="message ${msg.sender_id === currentUser.id ? "mine" : "theirs"}">
-      ${escapeHtml(msg.message)}
-      <div class="time">
-        ${new Date(msg.created_at).toLocaleTimeString([], {
+      const { data, error } = await supabaseClient
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("created_at", {
+          ascending: true
+        });
+
+      if (error) {
+        console.error(error);
+
+        messagesBox.innerHTML =
+          "<p>Could not load messages.</p>";
+
+        return;
+      }
+
+      messagesBox.innerHTML = "";
+
+      data.forEach(message => {
+        displayMessage(message);
+      });
+
+      scrollToBottom();
+    }
+
+
+    function displayMessage(message) {
+
+      const messageDiv = document.createElement("div");
+
+      messageDiv.className =
+        "message " +
+        (message.sender_id === currentUser.id
+          ? "mine"
+          : "theirs");
+
+      const text = document.createElement("div");
+
+      text.textContent = message.message;
+
+      const time = document.createElement("div");
+
+      time.className = "time";
+
+      time.textContent =
+        new Date(message.created_at).toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit"
-        })}
-      </div>
-    </div>
-  `).join("");
+        });
 
-  box.scrollTop = box.scrollHeight;
-}
+      messageDiv.appendChild(text);
+      messageDiv.appendChild(time);
 
-function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}
+      messagesBox.appendChild(messageDiv);
+    }
 
-startChat();
-</script>
+
+    async function sendMessage() {
+
+      const message = messageInput.value.trim();
+
+      if (!message || !conversationId || !currentUser) {
+        return;
+      }
+
+      sendButton.disabled = true;
+
+      const { error } = await supabaseClient
+        .from("messages")
+        .insert({
+          conversation_id: conversationId,
+          sender_id: currentUser.id,
+          message: message
+        });
+
+      if (error) {
+        console.error(error);
+        alert("Message could not be sent.");
+      } else {
+        messageInput.value = "";
+      }
+
+      sendButton.disabled = false;
+
+      messageInput.focus();
+    }
+
+
+    function subscribeToMessages() {
+
+      chatChannel = supabaseClient
+        .channel("chat-" + conversationId)
+
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+            filter:
+              "conversation_id=eq." + conversationId
+          },
+
+          payload => {
+
+            displayMessage(payload.new);
+
+            scrollToBottom();
+          }
+        )
+
+        .subscribe();
+    }
+
+
+    function scrollToBottom() {
+
+      messagesBox.scrollTop =
+        messagesBox.scrollHeight;
+    }
+
+
+    sendButton.addEventListener(
+      "click",
+      sendMessage
+    );
+
+
+    messageInput.addEventListener(
+      "keydown",
+      event => {
+
+        if (event.key === "Enter") {
+          sendMessage();
+        }
+
+      }
+    );
+
+
+    window.addEventListener(
+      "beforeunload",
+      () => {
+
+        if (chatChannel) {
+          supabaseClient.removeChannel(chatChannel);
+        }
+
+      }
+    );
+
+
+    startChat();
+  </script>
 
 </body>
 </html>
