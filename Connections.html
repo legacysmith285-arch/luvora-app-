@@ -260,13 +260,32 @@
             ${profile.country ? " • " + profile.country : ""}
           </div>
         </div>
-        async function openChat(otherUserId) {
+async function openChat(otherUserId) {
+  const {
+    data: { user },
+    error: authError
+  } = await supabaseClient.auth.getUser();
 
-  if (!currentUser) {
+  if (authError || !user) {
     alert("Please log in first.");
     window.location.href = "login.html";
     return;
   }
+
+  const { data, error } = await supabaseClient
+    .rpc("create_private_conversation", {
+      other_user_id: otherUserId
+    });
+
+  if (error) {
+    console.error(error);
+    alert("Could not open the private chat.");
+    return;
+  }
+
+  window.location.href =
+    "chat.html?conversation=" + data;
+}
 
   const user1 = currentUser.id;
   const user2 = otherUserId;
