@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luvora - Connections</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fff5f8;
+      color: #333;
+    }
+
+    header {
+      background: white;
+      padding: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #e91e63;
+    }
+
+    .back {
+      text-decoration: none;
+      color: #e91e63;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 25px auto;
+      padding: 15px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #e91e63;
+    }
+
+    h2 {
+      margin-top: 30px;
+      color: #444;
+    }
+
+    .card {
+      background: white;
+      padding: 18px;
+      margin: 12px 0;
+      border-radius: 16px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    }
+
+    .name {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .info {
+      color: #666;
+      margin: 7px 0;
+    }
+
+    button {
+      border: none;
+      padding: 10px 16px;
+      border-radius: 20px;
+      margin-right: 8px;
+      margin-top: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .accept {
+      background: #e91e63;
+      color: white;
+    }
+
+    .decline {
+      background: #eee;
+      color: #333;
+    }
+
+    .empty {
+      text-align: center;
+      color: #777;
+      padding: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">Luvora ❤️</div>
+  <a class="back" href="people.html">Explore People</a>
+</header>
+
+<div class="container">
+
+  <h1>My Connections</h1>
+
+  <h2>Connection Requests 💌</h2>
+  <div id="requests">
+    <div class="empty">Loading...</div>
+  </div>
+
+  <h2>My Connections 🤝</h2>
+  <div id="accepted">
+    <div class="empty">Loading...</div>
+  </div>
+
+</div>
+
+<script>
+  const SUPABASE_URL = "https://krfitqabsearnidegdzx.supabase.co";
+
+  const SUPABASE_KEY = "Sb-publishable-ZmozR-wotOGpWRGoVxjufA-x-Ilmfmy";
+
+  const supabaseClient =
+    window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  async function loadConnections() {
+
+    const {
+      data: { user },
+      error: authError
+    } = await supabaseClient.auth.getUser();
+
+    if (authError || !user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const { data: connections, error } = await supabaseClient
+      .from("connections")
+      .select("*")
+      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      document.getElementById("requests").innerHTML =
+        '<div class="empty">Could not load connections.</div>';
+      return;
+    }
+
+    const profileIds = [...new Set(
+      connections.flatMap(c => [c.sender_id, c.receiver_id])
+    )].filter(id => id !== user.id);
+
+    let profiles = [];
+
+    if (profileIds.length > 0) {
+      const result = await supabaseClient
+        .from("profiles")
+        .select("id, display_name, username, country, age, avatar_url")
+        .in("id", profileIds);
+
+      profiles = result.data || [];
+    }
+
+    const profileMap = {};
+    profiles.forEach(profile => {
+      profileMap[profile.id] = profile;
+    });
+
+    const requests = connections.filter(
+      c => c.receiver_id === user.id && c.status === "pending"
+    );
+
+    const accepted = connections.filter(
+      c => c.status === "accepted"
+    );
+
+    displayRequests(requests, profileMap);
+    displayAccepted(accepted, profileMap, user.id);
+  }
+
+  function displayRequests(requests, profileMap) {
+
+    const box = document.getElementById("requests");
+
+    if (requests.length === 0) {
+      box.innerHTML =
+        '<div class="empty">No new connection requests yet. ❤️</div>';
+      return;
+    }
+
+    box.innerHTML = requests.map(request => {
+
+      const profile = profileMap[request.sender_id] || {};
+
+      return `
+        <div class="card">
+          <div class="name">
+            ${profile.display_name || profile.username || "Luvora User"}
+          </div>
+
+          <div class="info">
+            ${profile.age ? profile.age + " years old" : ""}
+            ${profile.country ? " • " + profile.country : ""}
+          </div>
+
+          <button class="accept"
+            onclick="respondToRequest('${request.id}', 'accepted')">
+            ❤️ Accept
+          </button>
+
+          <button class="decline"
+            onclick="respondToRequest('${request.id}', 'declined')">
+            Decline
+          </button>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function displayAccepted(accepted, profileMap, userId) {
+
+    const box = document.getElementById("accepted");
+
+    if (accepted.length === 0) {
+      box.innerHTML =
+        '<div class="empty">You don't have any connections yet.</div>';
+      return;
+    }
+
+    box.innerHTML = accepted.map(connection => {
+
+      const otherId =
+        connection.sender_id === userId
+          ? connection.receiver_id
+          : connection.sender_id;
+
+      const profile = profileMap[otherId] || {};
+
+      return `
+        <div class="card">
+          <div class="name">
+            ${profile.display_name || profile.username || "Luvora User"}
+          </div>
+
+          <div class="info">
+            ${profile.age ? profile.age + " years old" : ""}
+            ${profile.country ? " • " + profile.country : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  async function respondToRequest(connectionId, status) {
+
+    const { error } = await supabaseClient
+      .from("connections")
+      .update({
+        status: status,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", connectionId);
+
+    if (error) {
+      console.error(error);
+      alert("Could not update the connection.");
+      return;
+    }
+
+    if (status === "accepted") {
+      alert("Connection accepted! ❤️");
+    } else {
+      alert("Connection declined.");
+    }
+
+    loadConnections();
+  }
+
+  loadConnections();
+</script>
+
+</body>
+</html>
