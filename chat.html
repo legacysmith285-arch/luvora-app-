@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luvora Chat</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fff5f8;
+    }
+
+    header {
+      background: white;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+
+    .back {
+      color: #e91e63;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #messages {
+      height: calc(100vh - 145px);
+      overflow-y: auto;
+      padding: 15px;
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 11px 14px;
+      margin: 8px 0;
+      border-radius: 18px;
+      word-wrap: break-word;
+    }
+
+    .mine {
+      margin-left: auto;
+      background: #e91e63;
+      color: white;
+    }
+
+    .theirs {
+      margin-right: auto;
+      background: white;
+      color: #333;
+    }
+
+    .time {
+      font-size: 10px;
+      opacity: .7;
+      margin-top: 4px;
+    }
+
+    .composer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 10px;
+      display: flex;
+      gap: 8px;
+      box-shadow: 0 -2px 8px rgba(0,0,0,.08);
+    }
+
+    #messageInput {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 22px;
+      outline: none;
+    }
+
+    #sendButton {
+      border: none;
+      background: #e91e63;
+      color: white;
+      padding: 0 20px;
+      border-radius: 22px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <a class="back" href="connections.html">← Back</a>
+  <div class="title">Luvora 💬</div>
+</header>
+
+<div id="messages">
+  <p>Loading messages...</p>
+</div>
+
+<div class="composer">
+  <input id="messageInput" type="text" placeholder="Write a message...">
+  <button id="sendButton">Send</button>
+</div>
+
+<script>
+const SUPABASE_URL = "https://krfitqabsearnidegdzx.supabase.co";
+
+const SUPABASE_KEY = "sb_publishable_ZmozR_WotOGpWRGovxjUfA_x-iLMFmy";
+
+const supabaseClient =
+  window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let conversationId = null;
+
+async function startChat() {
+
+  const {
+    data: { user },
+    error
+  } = await supabaseClient.auth.getUser();
+
+  if (error || !user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  currentUser = user;
+
+  /*
+    For now this page is the chat foundation.
+    We will connect it to a specific accepted connection
+    in the next step.
+  */
+
+  document.getElementById("messages").innerHTML =
+    "<p style='text-align:center;color:#777;'>Select an accepted connection to start chatting. ❤️</p>";
+}
+
+document.getElementById("sendButton").addEventListener("click", sendMessage);
+
+document.getElementById("messageInput").addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    sendMessage();
+  }
+});
+
+async function sendMessage() {
+
+  const input = document.getElementById("messageInput");
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  if (!conversationId) {
+    alert("Your chat connection will be activated in the next step. ❤️");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("messages")
+    .insert({
+      conversation_id: conversationId,
+      sender_id: currentUser.id,
+      message: message
+    });
+
+  if (error) {
+    console.error(error);
+    alert("Message could not be sent.");
+    return;
+  }
+
+  input.value = "";
+  loadMessages();
+}
+
+async function loadMessages() {
+
+  if (!conversationId) return;
+
+  const { data, error } = await supabaseClient
+    .from("messages")
+    .select("*")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const box = document.getElementById("messages");
+
+  box.innerHTML = data.map(msg => `
+    <div class="message ${msg.sender_id === currentUser.id ? "mine" : "theirs"}">
+      ${escapeHtml(msg.message)}
+      <div class="time">
+        ${new Date(msg.created_at).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit"
+        })}
+      </div>
+    </div>
+  `).join("");
+
+  box.scrollTop = box.scrollHeight;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+startChat();
+</script>
+
+</body>
+</html>
